@@ -1,0 +1,579 @@
+\section{Perancangan Umum Sistem}
+\label{sec:perancangan_umum_sistem}
+
+Perancangan umum sistem bertujuan untuk memberikan gambaran teknis mengenai alur kerja, struktur aplikasi, rancangan perangkat keras, desain antarmuka, dan model data yang digunakan dalam pengembangan sistem \textit{Web-AR} (\textit{Web-Based Augmented Reality}) untuk \textit{virtual try-on} batik di Museum Batik Yogyakarta. Sistem ini dirancang sebagai fasilitas interaktif non-kontak yang disediakan oleh museum dalam bentuk layar interaktif atau \textit{smart mirror}, sehingga pengunjung tidak perlu menggunakan gawai pribadi maupun melakukan pemindaian kode QR.
+
+Tahapan perancangan ini berfungsi sebagai jembatan antara analisis kebutuhan dan batasan permasalahan pada bab sebelumnya dengan implementasi detail komponen perangkat lunak, perangkat keras, dan modul kecerdasan buatan yang akan dikembangkan. Berbeda dengan pendekatan \textit{Web-AR} berbasis gawai pribadi, rancangan sistem ini memetakan interaksi antara pengunjung, sensor PIR sebagai pendeteksi keberadaan awal, mikrokontroler ESP32 sebagai pengolah sinyal aktivasi, aplikasi \textit{Web-AR} berbasis \textit{markerless body tracking}, modul tambahan \textit{face parsing} dan \textit{personal color analysis}, serta basis data informasi dan aset batik pada sisi server.
+
+Sistem dirancang agar dapat bekerja dalam dua mode utama, yaitu \textit{standby mode} dan \textit{active mode}. Pada kondisi \textit{standby}, layar dan proses komputasi utama berada dalam kondisi idle untuk mengurangi konsumsi daya. Ketika sensor PIR mendeteksi keberadaan atau gerakan pengunjung di area interaksi, ESP32 mengirimkan sinyal aktivasi ke aplikasi sehingga kamera, modul pelacakan tubuh, dan proses rendering AR dapat dijalankan. Dengan demikian, sistem tidak hanya berfokus pada peningkatan interaktivitas pengunjung, tetapi juga mempertimbangkan efisiensi daya pada instalasi museum yang beroperasi dalam durasi panjang.
+
+\subsection{Arsitektur Umum Sistem}
+\label{subsec:arsitektur_umum_sistem}
+
+Arsitektur umum sistem dirancang menggunakan pendekatan terintegrasi antara perangkat keras lokal, aplikasi \textit{Web-AR}, dan penyimpanan data berbasis server. Pada sisi museum, sistem terdiri dari layar interaktif atau \textit{smart mirror}, kamera, sensor PIR, mikrokontroler ESP32, dan komputer pemrosesan. Komponen lokal ini bertanggung jawab untuk mendeteksi keberadaan pengunjung, mengaktifkan sistem, menangkap citra pengunjung, melakukan pelacakan tubuh, serta menampilkan hasil \textit{virtual try-on} batik secara real-time pada layar museum.
+
+Berbeda dengan rancangan berbasis \textit{client-side} pada gawai pengunjung, komputasi utama pada sistem ini dijalankan pada perangkat yang disediakan oleh museum. Perangkat tersebut dapat berupa komputer pemrosesan, \textit{mini PC}, atau \textit{workstation} kompak yang terhubung dengan layar interaktif dan kamera. Pemisahan antara modul deteksi, modul aplikasi, dan modul penyimpanan data diperlukan agar sistem dapat bekerja secara stabil, mudah dirawat, dan tetap responsif saat digunakan oleh pengunjung museum. Skema interaksi arsitektur umum sistem dapat dilihat pada Gambar~\ref{fig:arsitektur_sistem_umum}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{812.png}
+\caption{Skema Arsitektur Umum Sistem Web-AR Virtual Try-On Batik}
+\label{fig:arsitektur_sistem_umum}
+\end{figure}
+
+Pada lapisan deteksi dan aktivasi, sensor PIR digunakan untuk mendeteksi keberadaan atau gerakan pengunjung di depan layar interaktif. Sensor ini berfungsi sebagai pemicu awal agar sistem berpindah dari \textit{standby mode} ke \textit{active mode}. Sinyal PIR dibaca oleh ESP32 atau mikrokontroler sejenis, kemudian status aktivasi dikirimkan ke aplikasi melalui USB serial atau Wi-Fi.
+
+Pada lapisan aplikasi, sistem menjalankan aplikasi \textit{Web-AR} berbasis WebGL untuk menampilkan visualisasi \textit{virtual try-on} batik pada layar museum. Modul \textit{user detection manager} membaca status aktivasi dari ESP32, sedangkan \textit{computer vision engine} melakukan \textit{body tracking} dan \textit{pose estimation} untuk menentukan titik acuan tubuh seperti bahu, torso, dan pinggul. Titik acuan tersebut digunakan untuk menyesuaikan posisi, skala, dan orientasi motif batik pada tubuh pengunjung.
+
+Sistem juga dapat dilengkapi fitur tambahan berupa \textit{face parsing} dan \textit{personal color analysis}. Fitur ini digunakan untuk segmentasi area wajah dan rekomendasi warna atau motif batik yang sesuai dengan karakteristik visual pengguna, namun tidak menggantikan fungsi utama sistem sebagai media \textit{virtual try-on} non-kontak.
+
+Hasil pelacakan tubuh dan pemilihan motif diproses oleh modul \textit{virtual clothing renderer} untuk menampilkan motif atau pakaian batik secara real-time pada layar interaktif atau \textit{smart mirror}. Dengan demikian, pengunjung dapat melihat visualisasi dirinya seolah-olah sedang mengenakan batik tanpa menyentuh koleksi asli museum.
+
+Pada sisi \textit{cloud-side} atau \textit{server-side}, sistem menyimpan aset motif batik, template pakaian AR, informasi koleksi, makna filosofis, sejarah, metadata batik, dan data kesesuaian palet warna. Komunikasi antara aplikasi lokal dan server dilakukan melalui \textit{REST API} berbasis HTTP/JSON agar konten batik dapat diperbarui secara terpusat.
+
+\subsection{Ilustrasi Miniatur Sistem (\textit{Prototype Concept})}
+\label{subsec:ilustrasi_miniatur_sistem}
+
+Konsep purwarupa sistem diposisikan sebagai fasilitas interaktif non-kontak yang ditempatkan pada zona edukasi Museum Batik Yogyakarta. Tata letak fisik sistem dirancang tanpa mengubah struktur interior bangunan cagar budaya, melainkan memanfaatkan area pajangan statis yang sudah ada sebagai ruang interaksi digital. Skema tata letak purwarupa ditunjukkan pada Gambar~\ref{fig:miniatur_sistem}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{812_2.png}
+\caption{Konsep Tata Letak Fisik Purwarupa Web-AR di Area Pameran Museum}
+\label{fig:miniatur_sistem}
+\end{figure}
+
+Purwarupa fisik terdiri atas area berdiri pengunjung, layar interaktif atau \textit{smart mirror}, sensor PIR, kamera, serta komputer pemrosesan. Pengunjung cukup berdiri pada area yang telah ditentukan, kemudian sensor PIR mendeteksi keberadaan pengunjung dan mengaktifkan sistem. Setelah sistem aktif, kamera menangkap citra pengunjung dan aplikasi menampilkan visualisasi \textit{virtual try-on} batik secara langsung pada layar museum.
+
+\subsection{Ilustrasi Penggunaan Sistem}
+\label{subsec:ilustrasi_penggunaan_sistem}
+
+Skenario interaksi penggunaan sistem oleh pengunjung museum dibagi menjadi empat tahapan sekuensial yang intuitif. Gambaran alur pengalaman pengguna dari awal terdeteksi sensor hingga visualisasi rekomendasi diilustrasikan pada Gambar~\ref{fig:ilustrasi_penggunaan}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{813.png}
+\caption{Ilustrasi Alur Penggunaan Aplikasi oleh Pengunjung Museum}
+\label{fig:ilustrasi_penggunaan}
+\end{figure}
+
+Tahapan penggunaan sistem diuraikan secara kronologis sebagai berikut:
+\begin{enumerate}
+    \item Tahap Deteksi Pengunjung: Pengunjung berdiri pada area interaksi di depan layar museum. Sensor PIR mendeteksi keberadaan atau gerakan pengunjung, kemudian ESP32 mengirimkan sinyal aktivasi agar sistem berpindah dari \textit{standby mode} ke \textit{active mode}.
+
+    \item Tahap Analisis Awal: Setelah sistem aktif, kamera pada layar interaktif menangkap citra pengunjung. Sistem dapat menjalankan fitur tambahan berupa \textit{face parsing} dan \textit{personal color analysis} untuk memberikan rekomendasi warna atau motif batik yang sesuai.
+
+    \item Tahap \textit{Virtual Try-On}: Pengunjung memilih motif batik melalui layar interaktif. Sistem melakukan \textit{body tracking} dan \textit{pose estimation} untuk menyesuaikan posisi, skala, dan orientasi pakaian batik virtual pada tubuh pengunjung secara \textit{real-time}.
+
+    \item Tahap Edukasi Filosofi: Pengunjung dapat membuka panel informasi untuk melihat penjelasan mengenai sejarah, makna filosofis, asal-usul, dan karakteristik motif batik yang sedang dicoba.
+
+    \item Tahap Selesai dan \textit{Standby}: Jika tidak ada aktivitas atau pengunjung tidak lagi terdeteksi dalam durasi tertentu, sistem kembali ke \textit{standby mode} untuk mengurangi konsumsi daya.
+\end{enumerate}
+
+\subsection{Pendekatan Perancangan Sistem \textit{Web-AR Virtual Try-On}}
+\label{subsec:pendekatan_perancangan_produk}
+
+Sebagai produk rekayasa perangkat lunak yang berorientasi pada pengguna akhir (\textit{visitor-centric}), pendekatan perancangan dimodelkan menggunakan tiga diagram standar akademik, yaitu \textit{Use Case Diagram} untuk memodelkan fungsionalitas, \textit{Data Flow Diagram} (DFD) untuk memodelkan aliran data sepihak, dan \textit{Entity Relationship Diagram} (ERD) untuk memodelkan struktur basis data penyedia konten.
+
+\subsection{Use Case Diagram}
+\label{subsubsec:use_case_diagram}
+
+\textit{Use Case Diagram} digunakan untuk mendefinisikan batasan sistem dan interaksi antara pengunjung sebagai aktor tunggal dengan fungsionalitas internal aplikasi. Model interaksi tunggal terhadap sistem ini ditunjukkan pada Gambar~\ref{fig:use_case_diagram}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4\textwidth]{usecasecp.png}
+\caption{Use Case Diagram Sistem Web-AR Virtual Try-On Batik}
+\label{fig:use_case_diagram}
+\end{figure}
+
+Sesuai dengan batasan permasalahan, sistem ini hanya melibatkan satu aktor utama:
+\begin{enumerate}
+    \item Pengunjung (Aktor Utama): Memiliki hak akses penuh untuk melakukan pemindaian kode QR, mengaktifkan sensor kamera, melakukan analisis warna wajah, mencoba pakaian batik secara virtual (\textit{virtual try-on}), serta mengakses konten edukasi filosofi motif batik koleksi museum.
+\end{enumerate}
+
+\newpage
+\subsubsection{Memulai Interaksi Web-AR}
+
+Use case ini menjelaskan proses awal ketika pengunjung memulai interaksi dengan Web-AR di area pameran museum.
+
+\begin{longtable}{|L{4cm}|L{11cm}|}
+\caption{Use Case Memulai Interaksi Web-AR}
+\label{tab:usecase_memulai_ar}
+\vspace{-0.75em}\
+\hline
+\multicolumn{1}{|c|}{Komponen} & \multicolumn{1}{c|}{Deskripsi}\
+\hline
+
+Trigger & Pengunjung mendekati perangkat Web-AR dan masuk ke zona deteksi sensor jarak.\\
+\hline
+
+Precondition & 
+(a) Perangkat Web-AR dalam kondisi aktif.\\
+& (b) Koneksi internet pada perangkat aktif.\\
+& (c) Kamera perangkat berfungsi dengan baik.\\
+& (d) Aplikasi Web-AR telah berjalan pada \textit{idle mode}.\\
+& (e) Sensor jarak berfungsi dengan baik.\\
+\hline
+
+Basic Path &
+(a) Sistem berada pada mode \textit{idle} ketika tidak ada pengunjung di area interaksi.\\
+& (b) Sensor jarak mendeteksi keberadaan pengunjung yang mendekati area penggunaan.\\
+& (c) Sistem secara otomatis mengaktifkan antarmuka utama Virtual Try-On Batik.\\
+& (d) Kamera mulai melakukan proses akuisisi citra secara real-time.\\
+& (e) Sistem menampilkan panduan posisi berdiri kepada pengunjung.\\
+& (f) Pengunjung berdiri pada area yang telah ditentukan.\\
+\hline
+
+Alternative Paths & 
+(a) Pengunjung bergerak keluar area deteksi sebelum interaksi dimulai sehingga sistem kembali ke mode \textit{idle}.\\
+\hline
+
+Postcondition & Sistem berhasil memuat antarmuka kamera depan dan siap melakukan pemindaian wajah.\\
+\hline
+
+Exception Paths &
+& (a) Sensor jarak gagal mendeteksi keberadaan pengunjung.\\
+& (b) Kamera tidak dapat diakses oleh sistem.\\
+& (c) Layar atau perangkat mengalami gangguan sehingga antarmuka tidak dapat ditampilkan.\\
+& (d) Jaringan internet lokal museum terputus sehingga halaman web gagal dimuat.\\
+\hline
+\end{longtable}
+
+\subsubsection{Melakukan \textit{Personal Color Analysis}}
+
+Use case ini menjelaskan proses klasifikasi kecerdasan buatan dalam mengisolasi piksel wajah untuk menentukan klasifikasi palet warna musiman pengguna.
+
+\begin{longtable}{|L{4cm}|L{11cm}|}
+\caption{Use Case Melakukan Analisis Warna Personal}
+\label{tab:usecase_personal_color}
+\vspace{-0.75em}\
+\hline
+\multicolumn{1}{|c|}{Komponen} & \multicolumn{1}{c|}{Deskripsi}\
+\hline
+
+Trigger & Pengunjung memosisikan wajah secara tegak lurus pada bingkai panduan antarmuka kamera.\\
+\hline
+
+Precondition & 
+(a) Sensor kamera depan aktif dan menangkap aliran citra wajah secara langsung.\\
+& (b) Model kecerdasan buatan telah terunduh sempurna pada memori peramban.\\
+\hline
+
+Basic Path &
+(a) Sistem menangkap bingkai foto statis wajah pengunjung.\\
+& (b) Algoritma \textit{face parsing} FaRL mengisolasi piksel murni area kulit wajah.\\
+& (c) Model ResNet18 mengklasifikasikan nilai rona kulit ke dalam salah satu kategori musim warna (\textit{Spring, Summer, Autumn, Winter}).\\
+& (d) Sistem menampilkan hasil klasifikasi warna pada layar gawai.\\
+\hline
+
+Alternative Paths & 
+(a) Pengunjung memindahkan posisi pencahayaan gawai apabila intensitas cahaya lobi kurang memadai.\\
+\hline
+
+Postcondition & Kategori warna personal berhasil ditentukan dan sistem otomatis memfilter katalog batik yang relevan.\\
+\hline
+
+Exception Paths &
+(a) Wajah pengguna terhalang masker atau kacamata sehingga klasifikasi tidak akurat.\\
+& (b) Nilai pencahayaan ruangan terlalu redup sehingga piksel kulit gagal diekstraksi.\\
+\hline
+\end{longtable}
+
+\subsubsection{Memilih Koleksi Batik}
+
+Use case ini menjelaskan proses ketika pengunjung memilih motif batik berdasarkan hasil filter rekomendasi warna personal untuk dicoba.
+
+\begin{longtable}{|L{4cm}|L{11cm}|}
+\caption{Use Case Memilih Koleksi Batik}
+\label{tab:usecase_memilih_batik}
+\vspace{-0.75em}\
+\hline
+\multicolumn{1}{|c|}{Komponen} & \multicolumn{1}{c|}{Deskripsi}\
+\hline
+
+Trigger & Pengunjung menekan salah satu ikon motif batik pada menu \textit{carousel} aplikasi.\\
+\hline
+
+Precondition &
+(a) Kategori warna personal pengunjung telah teridentifikasi.\\
+& (b) Data tekstual filosofi dan tautan berkas model 3D telah terambil dari basis data.\\
+\hline
+
+Basic Path &
+(a) Sistem memunculkan daftar rekomendasi motif batik yang paling selaras.\\
+& (b) Pengunjung memilih salah satu kartu motif batik (Parang, Dringo, atau Megamendung).\\
+& (c) Sistem mengunduh aset geometri model tiga dimensi pakaian terkait secara \textit{asynchronous}.\\
+\hline
+
+Alternative Paths &
+(a) Pengunjung membuka kembali halaman katalog menu setelah proses uji coba virtual untuk memilih motif alternatif.\\
+\hline
+
+Postcondition & Berkas aset model 3D motif batik berhasil dimuat ke dalam memori aplikasi dan siap diproyeksikan.\\
+\hline
+
+Exception Paths &
+(a) Berkas model 3D pakaian gagal diunduh akibat pembatasan ukuran \textit{bandwidth} internet.\\
+& (b) ID motif batik tidak ditemukan dalam tabel data respon JSON.\\
+\hline
+\end{longtable}
+
+\subsubsection{Melakukan \textit{Virtual Try-On}}
+
+Use case ini menjelaskan proses visualisasi pakaian batik secara virtual menggunakan pelacakan anatomi tubuh berbasis realitas tertambah.
+
+\begin{longtable}{|L{4cm}|L{11cm}|}
+\caption{Use Case Melakukan Virtual Try-On}
+\label{tab:usecase_virtual_tryon}
+\vspace{-0.75em}\
+\hline
+\multicolumn{1}{|c|}{Komponen} & \multicolumn{1}{c|}{Deskripsi}\
+\hline
+
+Trigger & Proses pengunduhan aset model tiga dimensi pakaian batik selesai dilakukan.\\
+\hline
+
+Precondition &
+(a) Kamera belakang atau depan gawai aktif memantau tubuh pengunjung.\\
+& (b) Pengunjung berdiri pada jarak ideal antara 1 hingga 3 meter dari kamera gawai.\\
+\hline
+
+Basic Path &
+(a) Mesin pelacak KiviCube mendeteksi koordinat \textit{landmark} anatomi bahu dan dada pengguna.\\
+& (b) Sistem melakukan transformasi matriks koordinat spasial secara \textit{real-time}.\\
+& (c) Pustaka WebGL merender jaring dimensi pakaian virtual tepat di atas tubuh pengguna.\\
+& (d) Sistem memunculkan panel teks informasi edukasi mengenai filosofi budaya motif batik terkait.\\
+\hline
+
+Alternative Paths & (a) Pengunjung mundur beberapa langkah untuk menyesuaikan penempatan visualisasi bahu pakaian.\\
+\hline
+
+Postcondition & Visualisasi pakaian 3D batik dan teks edukasi filosofi berhasil disajikan secara interaktif di layar gawai.\\
+\hline
+
+Exception Paths &
+(a) Landmark tubuh terputus akibat adanya objek penghalang lain di latar belakang.\\
+& (b) Kecepatan laju bingkai gawai turun di bawah batasan operasional akibat performa RAM tidak stabil.\\
+\hline
+\end{longtable}
+
+
+
+\subsection{Data Flow Diagram (DFD)}
+\label{subsubsec:data_flow_diagram}
+
+\textit{Data Flow Diagram} Level 0 (Diagram Konteks) memodelkan transformasi data dan batas aliran informasi antara pengunjung dan sistem. Skema transformasi data ini digambarkan pada Gambar~\ref{fig:dfd_konteks}.
+
+
+\begin{comment}
+    
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{tes51.png}
+\caption{Data Flow Diagram (DFD) Level 0 Diagram Konteks Sistem}
+\label{fig:dfd_konteks}
+\end{figure}
+
+Aliran informasi pada diagram konteks yang berfokus pada pengunjung ini diatur sebagai berikut:
+\begin{enumerate}
+    \item Pengunjung memberikan masukan (\textit{input}) berupa aliran data citra kamera (\textit{camera frame stream}) dan parameter pemilihan menu motif pakaian ke dalam sistem.
+    \item Sistem memberikan luaran (\textit{output}) berupa visualisasi proyeksi pakaian realitas tertambah secara waktu nyata serta penyajian data teks deskripsi filosofi batik ke layar gawai pengunjung. Seluruh proses pengambilan data aset dari server terjadi di balik layar (\textit{background process}) untuk mendukung interaksi pengunjung tersebut.
+\end{enumerate}
+
+\end{comment}
+
+
+
+\subsection{Entity Relationship Diagram (ERD)}
+\label{subsubsec:entity_relationship_diagram}
+
+\textit{Entity Relationship Diagram} (ERD) digunakan untuk memodelkan struktur data dan hubungan antar entitas dalam sistem. Model data ini dirancang untuk mendukung proses analisis \textit{personal color}, rekomendasi motif batik, visualisasi \textit{virtual try-on}, serta penyajian informasi edukatif mengenai motif batik yang dipilih. Struktur hubungan entitas pada sistem ini disajikan pada Gambar~\ref{fig:erd_sistem}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{8_ERD_2.png}
+\caption{Entity Relationship Diagram (ERD)}
+\label{fig:erd_sistem}
+\end{figure}
+
+
+    \subsubsection{Entitas}
+    \label{subsubsec:entitas}
+    Sistem terdiri atas lima entitas utama, yaitu \textit{Session}, \textit{Analysis Result}, \textit{Personal Color}, \textit{Batik}, dan \textit{Filosofi}. Masing-masing entitas memiliki fungsi sebagai berikut.
+    
+    \begin{enumerate}
+        \item \textbf{Entitas Session}
+    
+        Entitas \textit{Session} digunakan untuk menyimpan informasi sesi penggunaan aplikasi oleh pengunjung. Karena sistem tidak menggunakan mekanisme akun maupun proses login, identitas pengguna direpresentasikan melalui sesi penggunaan yang bersifat sementara.
+    
+        \begin{itemize}
+            \item \texttt{session\_id} (PK)
+            \item \texttt{start\_time}
+            \item \texttt{end\_time}
+            \item \texttt{device\_type}
+            \item \texttt{browser}
+        \end{itemize}
+    
+        \item \textbf{Entitas Analysis Result}
+    
+        Entitas \textit{Analysis Result} menyimpan hasil analisis warna personal yang diperoleh dari proses pemindaian wajah pengguna. Data ini digunakan sebagai dasar dalam memberikan rekomendasi motif batik yang sesuai dengan karakteristik warna pengguna.
+    
+        \begin{itemize}
+            \item \texttt{analysis\_id} (PK)
+            \item \texttt{session\_id} (FK)
+            \item \texttt{color\_id} (FK)
+            \item \texttt{confidence\_score}
+            \item \texttt{analysis\_time}
+        \end{itemize}
+    
+        \item \textbf{Entitas Personal Color}
+    
+        Entitas \textit{Personal Color} menyimpan data kategori musim warna yang digunakan sebagai acuan rekomendasi batik. Kategori warna yang digunakan terdiri atas Spring, Summer, Autumn, dan Winter.
+    
+        \begin{itemize}
+            \item \texttt{color\_id} (PK)
+            \item \texttt{season\_name}
+            \item \texttt{description}
+        \end{itemize}
+    
+        \item \textbf{Entitas Batik}
+    
+        Entitas \textit{Batik} berfungsi sebagai repositori utama aset digital batik yang digunakan pada proses virtual try-on. Entitas ini menyimpan informasi motif beserta lokasi berkas yang diperlukan oleh sistem.
+    
+        \begin{itemize}
+            \item \texttt{batik\_id} (PK)
+            \item \texttt{color\_id} (FK)
+            \item \texttt{nama\_motif}
+            \item \texttt{image\_path}
+            \item \texttt{model\_path}
+        \end{itemize}
+    
+        \item \textbf{Entitas Filosofi}
+    
+        Entitas \textit{Filosofi} menyimpan informasi edukatif mengenai motif batik yang ditampilkan kepada pengguna selama proses virtual try-on berlangsung. Informasi yang disimpan mencakup sejarah, makna filosofis, dan daerah asal motif batik.
+    
+        \begin{itemize}
+            \item \texttt{filosofi\_id} (PK)
+            \item \texttt{batik\_id} (FK)
+            \item \texttt{sejarah}
+            \item \texttt{filosofi}
+            \item \texttt{daerah\_asal}
+        \end{itemize}
+    
+    \end{enumerate}
+    
+    \subsubsection{\textit{Relationship} Antar Entitas}
+    \label{subsubsec:relationship}
+    
+        Entitas \textit{Session} memiliki hubungan \textbf{one-to-one} dengan entitas \textit{Analysis Result}. Dari sisi \textit{Session}, hubungan ini bersifat opsional karena pengguna dapat menutup aplikasi sebelum proses analisis selesai dilakukan. Sebaliknya, dari sisi \textit{Analysis Result}, hubungan bersifat wajib karena setiap hasil analisis harus berasal dari tepat satu sesi penggunaan.
+        
+        Entitas \textit{Personal Color} memiliki hubungan \textbf{one-to-many} dengan entitas \textit{Analysis Result}. Satu kategori warna dapat digunakan oleh banyak hasil analisis pengguna, sedangkan setiap hasil analisis hanya dapat menghasilkan satu kategori warna personal. Oleh karena itu, hubungan bersifat opsional pada sisi \textit{Personal Color} dan wajib pada sisi \textit{Analysis Result}.
+        
+        Entitas \textit{Personal Color} juga memiliki hubungan \textbf{one-to-many} dengan entitas \textit{Batik}. Satu kategori warna dapat direkomendasikan untuk banyak motif batik, sedangkan setiap motif batik hanya dikaitkan dengan satu kategori warna utama. Hubungan ini bersifat opsional pada sisi \textit{Personal Color} dan wajib pada sisi \textit{Batik}.
+        
+        Entitas \textit{Batik} memiliki hubungan \textbf{one-to-one} dengan entitas \textit{Filosofi}. Setiap motif batik memiliki satu informasi filosofi yang menjelaskan sejarah, makna, dan asal-usulnya. Sebaliknya, setiap data filosofi hanya menjelaskan satu motif batik tertentu. Hubungan ini bersifat wajib pada kedua sisi karena data batik dan informasi edukasinya selalu ditampilkan secara bersamaan dalam sistem.
+
+\section{Diagram Alir Pengunjung}
+\label{sec:DiagramAlirPengunjung}
+
+\textit{Activity diagram} sistem menggambarkan alur interaksi pengunjung dengan sistem virtual try-on batik berbasis augmented reality (AR) yang disediakan melalui perangkat khusus di area museum. Alur interaksi pengunjung direpresentasikan dalam diagram pada Gambar~\ref{fig:8_diagram_alir}. Proses dimulai ketika pengunjung datang ke museum dan mendatangi area interaksi AR yang telah disediakan. Perangkat AR berada dalam kondisi \textit{standby} sehingga siap digunakan oleh pengunjung tanpa memerlukan proses instalasi aplikasi maupun konfigurasi tambahan pada perangkat pribadi pengguna. Ketika pengunjung mendekati perangkat, sensor jarak akan mendeteksi keberadaan pengguna dan menampilkan layar untuk \textit{visual try-on}.
+
+Setelah sistem aktif dan siap digunakan, pengunjung dapat melakukan \textit{personal color analysis}. Dari hasil tipe \textit{personal color} pengguna, sistem memberikan rekomendasi motif batik yang cocok atau sesuai dengan tipe personal color tersebut. Pengunjung juga dapat melewati fitur \textit{personal color analysis} dan langsung memilih motif batik yang diingiinkan. Pengunjung memilih motif atau koleksi batik yang ingin dicoba secara virtual melalui antarmuka yang tersedia pada perangkat. Pilihan tersebut kemudian diproses oleh sistem untuk mempersiapkan aset virtual yang akan digunakan dalam proses \textit{virtual try-on}. Selanjutnya kamera pada perangkat akan mendeteksi keberadaan dan posisi pengguna sebagai acuan dalam proses pelacakan (\textit{tracking}) dan penyesuaian tampilan objek virtual.
+
+Setelah pengguna berhasil terdeteksi, sistem akan menjalankan proses AR dengan merender visualisasi batik secara virtual pada pengguna secara \textit{real-time}. Pada tahap ini pengguna dapat melihat simulasi penggunaan batik secara interaktif melalui layar maupun media tampilan tambahan yang disediakan museum. Sistem kemudian memberikan pilihan kepada pengguna untuk menentukan apakah ingin mengganti motif batik yang sedang digunakan. Apabila pengguna memilih untuk mengganti motif, sistem akan mengembalikan alur ke tahap pemilihan koleksi sehingga pengguna dapat mencoba variasi motif lain. Sebaliknya, apabila pengguna tidak ingin melakukan perubahan, interaksi dianggap selesai dan pengguna dapat meninggalkan area AR.
+
+Alur tersebut dirancang agar pengunjung dapat mengeksplorasi koleksi batik secara interaktif dan berulang dengan pengalaman penggunaan yang sederhana, tanpa memerlukan pengetahuan teknis maupun penggunaan perangkat pribadi. Selain itu, pendekatan ini juga mendukung implementasi pada lingkungan museum karena seluruh proses dilakukan melalui perangkat yang telah disediakan oleh pihak pengelola.
+
+
+
+\begin{comment}
+
+Diagram alir pengunjung menggambarkan alur logika interaksi pengguna dengan sistem \textit{virtual try-on} dan \textit{personal color analysis} berbasis \textit{Web-AR} secara mendalam. Alur logika operasional ini dipetakan secara sistematis pada Gambar~\ref{fig:8_diagram_alir}. Proses dimulai ketika pengunjung melakukan pemindaian kode QR fisik. Pemindaian ini secara instan mengaktifkan aplikasi web yang berada dalam kondisi siap pakai.
+
+Setelah halaman aplikasi web termuat, kamera gawai akan aktif untuk memulai tahapan analisis kecerdasan buatan. Sistem mengeksekusi modul \textit{face parsing} FaRL untuk mengisolasi area kulit wajah dan melakukan klasifikasi untuk menentukan kategori musim warna personal pengunjung. Hasil klasifikasi ini menjadi parameter untuk menampilkan menu pilihan motif batik tradisional yang paling selaras dengan rona kulit pengguna.
+
+Setelah pengguna memilih salah satu motif batik, mesin pelacak tubuh KiviCube akan mendeteksi koordinat anatomi pengguna sebagai acuan transformasi spasial. Sistem kemudian merender model pakaian tiga dimensi di atas citra tubuh pengguna secara responsif. Bersamaan dengan visualisasi pakaian virtual, sistem menampilkan panel informasi multimedia yang menyajikan teks edukasi mengenai makna filosofis dari motif batik tersebut.
+
+Sistem selanjutnya menyediakan menu interaktif bagi pengunjung untuk mengganti motif batik yang direkomendasikan atau mengakhiri sesi. Apabila pengunjung merasa interaksi sudah mencukupi dan memilih untuk menutup jendela peramban, seluruh sesi interaksi digital dianggap selesai dan pengunjung dapat melanjutkan alur kunjungan fisik di dalam museum.
+
+\end{comment}
+
+\begin{figure}[H]
+    \centering
+\includegraphics[scale=0.6]{8_activity_2.png}
+    \caption{Diagram Alir Interaksi Pengunjung pada Aplikasi Web-AR Batik}
+    \label{fig:8_diagram_alir}
+\end{figure}
+\begin{comment}
+    
+
+Perancangan umum sistem bertujuan untuk memberikan gambaran teknis mengenai alur kerja,
+struktur aplikasi, desain antarmuka, dan model data yang digunakan dalam pengembangan aplikasi
+ARberbasis marker di Museum Batik Yogyakarta.
+
+
+\section{Perancangan Umum Sistem}
+
+\subsection{Arsitektur Umum Sistem}
+\subsection{Ilustrasi Miniatur Sistem (Prototype Concept)}
+\subsection{Ilustrasi Penggunaan Sistem}
+\subsection{Pendekatan Perancangan Berdasarkan Jenis Produk}
+\subsubsection{Data Flow
+Diagram (DFD), Entity Relationship Diagram (ERD), serta use case diagram}
+
+\section{Penyajian Flowchart/Alur Kerja Alat}
+
+
+\section{Rancangan Arsitektur Sistem}
+\label{sec:rancangan_arsitektur_sistem}
+
+Sistem AR virtual try-on batik dirancang dengan beberapa komponen utama:
+\begin{enumerate}
+    \item \textit{Input camera}, berfungsi menangkap video pengguna secara real-time.
+    \item Modul \textit{body tracking}, berfungsi mendeteksi landmark tubuh seperti bahu, dada, pinggang, dan posisi tubuh.
+    \item Modul pengolahan motif batik, berfungsi menyiapkan aset batik digital dalam format yang dapat ditampilkan sebagai \textit{overlay}.
+    \item Modul transformasi dan penyesuaian visual, berfungsi menentukan posisi, skala, dan rotasi visualisasi batik berdasarkan landmark tubuh.
+    \item Modul antarmuka pengguna, berfungsi menampilkan pilihan motif batik dan hasil try-on.
+    \item Modul pencatatan evaluasi, berfungsi mencatat hasil pengujian teknis seperti FPS, latensi, keberhasilan tracking, dan kondisi kegagalan.
+\end{enumerate}
+
+Alur sistem dimulai ketika kamera menangkap citra pengguna. Citra tersebut diproses oleh modul \textit{body tracking} untuk memperoleh titik tubuh. Berdasarkan titik tersebut, sistem menghitung area penempatan batik dan melakukan transformasi aset batik agar mengikuti posisi tubuh pengguna. Hasil visualisasi kemudian ditampilkan kembali pada layar secara real-time.
+
+\section{Kriteria Evaluasi Sistem}
+\label{sec:kriteria_evaluasi_sistem}
+
+Evaluasi sistem disusun dengan mengacu pada karakteristik kualitas perangkat lunak seperti \textit{functional suitability}, \textit{performance efficiency}, \textit{usability}, dan \textit{reliability} pada ISO/IEC 25010 \cite{iso25010_2011,iso25000_25010}. Kriteria tersebut disesuaikan dengan konteks sistem AR virtual try-on batik.
+
+\subsection{Evaluasi Fungsional}
+\label{subsec:evaluasi_fungsional}
+
+Evaluasi fungsional digunakan untuk memastikan bahwa fitur utama sistem berjalan sesuai kebutuhan. Pengujian mencakup kemampuan sistem membuka kamera, mendeteksi tubuh, menampilkan pilihan motif batik, melakukan \textit{overlay} batik pada tubuh, mengganti motif, dan menjaga visualisasi tetap mengikuti posisi pengguna. Hasil pengujian fungsional dicatat dalam bentuk skenario uji dan status berhasil atau gagal.
+
+\subsection{Evaluasi Performa Real-Time}
+\label{subsec:evaluasi_performa_realtime}
+
+Evaluasi performa dilakukan untuk menilai kemampuan sistem bekerja secara real-time. Parameter yang diukur meliputi:
+\begin{enumerate}
+    \item \textit{Frame per second} (FPS), untuk mengetahui kelancaran tampilan.
+    \item Latensi, untuk mengetahui keterlambatan antara gerakan pengguna dan perubahan visualisasi.
+    \item Waktu pemrosesan per frame, untuk mengetahui beban komputasi sistem.
+    \item Penggunaan sumber daya perangkat, seperti CPU, GPU, atau memori apabila tersedia.
+\end{enumerate}
+
+Evaluasi ini penting karena sistem AR try-on harus terasa responsif. Jika latensi terlalu tinggi, pengalaman pengguna akan menurun karena visualisasi batik tidak mengikuti gerakan tubuh secara natural.
+
+\subsection{Evaluasi Robustness terhadap Variasi Kondisi}
+\label{subsec:evaluasi_robustness}
+
+Evaluasi \textit{robustness} dilakukan dengan menguji sistem pada beberapa variasi kondisi. Variasi yang direncanakan meliputi:
+\begin{enumerate}
+    \item Kondisi pencahayaan terang, sedang, dan redup.
+    \item Jarak pengguna terhadap kamera, misalnya dekat, sedang, dan jauh.
+    \item Pose tubuh tegak, sedikit miring, dan bergerak ringan.
+    \item Variasi ukuran tubuh pengguna.
+    \item Variasi motif batik dengan tingkat kerumitan pola yang berbeda.
+\end{enumerate}
+
+Pengujian ini bertujuan untuk mengetahui kondisi apa yang menyebabkan sistem gagal atau mengalami penurunan performa. Analisis ini penting agar proyek tidak hanya menunjukkan bahwa sistem dapat berjalan pada kondisi ideal, tetapi juga menjelaskan batasan sistem pada kondisi nyata.
+
+\subsection{Evaluasi Kualitas Visualisasi}
+\label{subsec:evaluasi_kualitas_visualisasi}
+
+Evaluasi kualitas visualisasi digunakan untuk menilai kesesuaian posisi, skala, proporsi, dan kestabilan \textit{overlay} batik. Parameter yang diamati antara lain apakah batik menutupi area tubuh yang sesuai, apakah ukuran batik berubah secara proporsional terhadap jarak pengguna, dan apakah visualisasi tetap stabil ketika pengguna bergerak. Evaluasi dapat dilakukan melalui observasi penguji dan penilaian pengguna.
+
+\subsection{Evaluasi Usability dan Penerimaan Pengguna}
+\label{subsec:evaluasi_usability}
+
+Evaluasi usability dilakukan untuk mengetahui apakah sistem mudah digunakan dan dianggap meningkatkan interaktivitas museum. Salah satu instrumen yang dapat digunakan adalah System Usability Scale (SUS), yang merupakan metode evaluasi usability sederhana dan banyak digunakan untuk menilai persepsi pengguna terhadap sistem \cite{brooke1996sus}. Selain SUS, kuesioner tambahan dapat digunakan untuk menilai aspek khusus museum, seperti daya tarik pengalaman, rasa keterlibatan, dan kesesuaian sistem sebagai media interaktif non-kontak.
+
+Contoh aspek yang dievaluasi adalah:
+\begin{enumerate}
+    \item Kemudahan memahami cara penggunaan sistem.
+    \item Kemudahan memilih motif batik.
+    \item Kenyamanan menggunakan kamera untuk try-on.
+    \item Persepsi bahwa sistem membuat museum batik lebih interaktif.
+    \item Persepsi bahwa sistem dapat menjadi alternatif interaksi tanpa menyentuh koleksi asli.
+\end{enumerate}
+\section{Skenario Pengujian}
+\label{sec:skenario_pengujian}
+
+Skenario pengujian dirancang untuk menunjukkan bahwa proyek memenuhi standar kompleksitas capstone S1. Pengujian tidak hanya dilakukan pada kondisi ideal, tetapi juga pada kondisi yang memiliki potensi menyebabkan kegagalan. Tabel \ref{tab:skenario_pengujian_bab3} menunjukkan rancangan skenario pengujian.
+
+\begin{table}[H]
+\centering
+\caption{Rancangan Skenario Pengujian Sistem}
+\label{tab:skenario_pengujian_bab3}
+\begin{tabular}{|p{3cm}|p{4cm}|p{5cm}|}
+\hline
+\textbf{Aspek Uji} & \textbf{Variasi Kondisi} & \textbf{Parameter yang Diamati} \\
+\hline
+Fungsionalitas & Pemilihan motif, aktivasi kamera, try-on, pergantian motif & Keberhasilan fitur, error, waktu respon \\
+\hline
+Pencahayaan & Terang, sedang, redup & Keberhasilan tracking, kestabilan overlay, FPS \\
+\hline
+Jarak kamera & Dekat, sedang, jauh & Akurasi posisi overlay, perubahan skala, kegagalan tracking \\
+\hline
+Pose pengguna & Tegak, miring, bergerak ringan & Stabilitas landmark tubuh dan pergeseran overlay \\
+\hline
+Motif batik & Motif sederhana dan kompleks & Keterbacaan motif, kualitas visual, kenyamanan tampilan \\
+\hline
+Perangkat & Perangkat dengan spesifikasi berbeda apabila tersedia & FPS, latensi, penggunaan resource \\
+\hline
+Usability & Pengujian oleh calon pengguna/pengunjung & Skor SUS, persepsi interaktivitas, kemudahan penggunaan \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Trade-Off dan Batasan Rekayasa}
+\label{sec:tradeoff_batasan_rekayasa}
+
+Pengembangan sistem AR virtual try-on batik memiliki beberapa trade-off. Pertama, semakin detail aset batik yang digunakan, semakin tinggi kualitas visual yang dihasilkan, tetapi beban pemrosesan juga meningkat. Kedua, penggunaan model deteksi tubuh yang lebih kompleks dapat meningkatkan akurasi, tetapi berpotensi menurunkan FPS dan meningkatkan latensi pada perangkat terbatas. Ketiga, visualisasi yang terlalu realistis membutuhkan pengolahan geometri dan pencahayaan yang lebih kompleks, sedangkan sistem museum membutuhkan respons yang cepat dan mudah digunakan.
+
+Batasan rekayasa yang perlu diperhatikan meliputi:
+\begin{enumerate}
+    \item Sistem harus dapat digunakan oleh pengunjung umum tanpa instruksi teknis yang rumit.
+    \item Sistem harus menjaga pengalaman real-time agar visualisasi tidak terlambat mengikuti gerakan pengguna.
+    \item Sistem harus tetap berjalan pada kondisi pencahayaan museum yang tidak selalu ideal.
+    \item Sistem tidak boleh mengganggu prinsip konservasi koleksi karena interaksi dilakukan secara digital dan non-kontak.
+    \item Sistem harus mempertimbangkan keterbatasan perangkat, terutama apabila digunakan pada perangkat lokal di museum.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+\textcolor{black}{Di bagian ini, mahasiswa diharapkan mampu mendesain solusi dari permasalahan yang telah dipilih. Rancangan solusi dapat diberikan dalam bentuk skematik, diagram blok, diagram alur/\textit{flowcharts}, \textit{pseudo-codes}, dan sejenisnya.}
+
+Bagian ini merupakan inti dari dokumen C-251. Artinya kualitas dari dokumen C-251 ini akan ditentukan dari kualitas pada bagian ini. Peserta \textit{capstone} wajib menjelaskan secara umum desain dari sistem yang nantinya akan diimplementasikan pada \textit{Capstone} 2 di semester genap.
+
+Tergantung pada jenis topik yang diangkat, isi dari bagian ini dapat bervariasi. Apabila produk yang ditawarkan berupa perangkat keras, maka bagian ini pada umumnya akan berisi \textit{blueprint} umum/skematik umum perancangan hardware yang lebih bersifat blok diagram fungsional dan tidak terlalu mendetail sampai level komponen ataupun desain \textit{board} elektronis/mekanik.
+
+Apabila produk/luaran yang ditawarkan berupa sistem aplikasi (khususnya untuk bidang TI), bagian ini berupa DFD dan ERD beserta \textit{detail use case diagram} yang masih umum dan belum mendetail.
+
+Bila produk/luaran yang ditawarkan berupa program simulasi lengkap, maka pada bagian ini peserta \textit{capstone} harus menyajikan model matematika secara umum yang nantinya akan dijabarkan. Demikian pula metode atau algoritme (model matematika maupun diagram alir) yang digunakan untuk menyelesaikan permasalahan tersebut.
+
+\section{Diagram \textit{Use-Case}}
+\titlelabel{sec:DiagramUseCase}
+
+Peserta \textit{capstone} harus menyajikan pula model \textit{flowchart} sampai dengan proses pengujian dan verifikasi yang akan digunakan untuk menguji unjuk kerja dari desain yang dibuat. Mahasiswa bisa memilih untuk menggunakan diagram alir, diagram blok, atau algoritme. Salah satu contoh diagram alir dapat dilihat pada Gambar \ref{fig:8_usecase}. Program simulasi lain dapat juga berupa program yang digunakan untuk menguji unjuk kerja algoritme yang digunakan untuk menjawab suatu permasalahan.
+
+Untuk bidang STL yang tidak menghasilkan perangkat keras maupun program simulasi lengkap, maka peserta \textit{capstone} harus mencantumkan model matematika yang umumnya digunakan. Misalkan, apabila problem yang diangkat berupa problem optimasi, maka peserta \textit{capstone} harus menyertakan \textit{model objective function} serta \textit{constraint} yang berkaitan, dan model algoritme optimasi yang dipakai untuk menyelesaikan problem optimasi berdasarkan sifat dari problem optimasi tersebut (misalkan: \textit{convex}/\textit{non-convex}, linear/\textit{quadratic}/fungsi lainnya, \textit{integer}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{8_usecase.pdf}
+    \caption{Diagram \textit{Use-Case}}
+    \label{fig:8_usecase}
+\end{figure}
+
+
+    
+\end{comment}

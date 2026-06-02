@@ -1,0 +1,100 @@
+{
+  "batikCollections": [
+    {
+      "id": "parang",
+      "name": "Parang",
+      "colorCategory": "winter",
+      "imageUrl": "/assets/images/parang.jpg",
+      "model3dUrl": "/assets/models/parang.gltf",
+      "history": "Motif Parang adalah salah satu batik klasik yang paling terkenal dari Yogyakarta. Parang berasal dari kata 'pareng' yang berarti 'ombak' atau gelombang dalam bahasa Jawa. Motif ini telah digunakan sejak zaman kerajaan dan merupakan simbol kekuatan dan ketangguhan.",
+      "origin": "Yogyakarta, Jawa Tengah",
+      "philosophy": "Parang melambangkan kehati-hatian, kewaspadaan, dan kebijaksanaan. Garis diagonal yang tajam dan berulang menggambarkan kekuatan, ketangguhan, dan semangat yang tidak pernah berhenti. Motif ini dulunya hanya dikenakan oleh para bangsawan dan prajurit sebagai simbol kehormatan dan kemampuan.",
+      "createdAt": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "megamendung",
+      "name": "Megamendung",
+      "colorCategory": "summer",
+      "imageUrl": "/assets/images/megamendung.jpg",
+      "model3dUrl": "/assets/models/megamendung.gltf",
+      "history": "Megamendung adalah motif batik Garut yang terkenal dengan awan melambung yang indah. Motif ini berasal dari Kota Garut, Jawa Barat dan telah menjadi ciri khas batik lokal. Nama 'Megamendung' berasal dari bahasa Sunda yang berarti 'mendung' atau awan yang menggantung di langit.",
+      "origin": "Garut, Jawa Barat",
+      "philosophy": "Megamendung melambangkan langit yang cerah dan harapan yang tinggi. Awan-awan melambung yang dinamis menggambarkan ambisi, mimpi yang tak terbatas, dan semangat yang terus berkembang. Motif ini dipercaya membawa berkah, keberuntungan, dan energi positif bagi pemakainya.",
+      "createdAt": "2024-01-15T10:05:00Z"
+    },
+    {
+      "id": "dringo",
+      "name": "Dringo",
+      "colorCategory": "autumn",
+      "imageUrl": "/assets/images/dringo.jpg",
+      "model3dUrl": "/assets/models/dringo.gltf",
+      "history": "Dringo adalah motif batik tradisional dari Madura yang menampilkan desain geometris yang kompleks dan indah. Batik Madura dikenal dengan warna-warna yang cerah dan pola yang detail. Dringo sendiri memiliki makna mendalam dalam budaya Madura.",
+      "origin": "Madura, Jawa Timur",
+      "philosophy": "Dringo melambangkan kebersamaan, keteraturan, dan harmoni. Pola geometris yang berulang dengan sempurna menggambarkan siklus kehidupan yang terus berlanjut dan keseimbangan. Motif ini mencerminkan kearifan lokal dan nilai-nilai kekeluargaan masyarakat Madura yang kuat.",
+      "createdAt": "2024-01-15T10:10:00Z"
+    },
+    {
+      "id": "kawung",
+      "name": "Kawung",
+      "colorCategory": "spring",
+      "imageUrl": "/assets/images/kawung.jpg",
+      "model3dUrl": "/assets/models/kawung.gltf",
+      "history": "Kawung adalah motif batik Jawa Tengah yang terinspirasi dari bunga lontar. Motif ini termasuk salah satu batik tertua dan paling dihormati dalam tradisi batik Jawa. Kawung berasal dari kata 'kayu-wung' yang merujuk pada bunga lontar yang indah.",
+      "origin": "Yogyakarta, Jawa Tengah",
+      "philosophy": "Kawung melambangkan keindahan alam dan kesederhanaan dalam kehidupan. Empat bunga yang disusun rapi mengilustrasikan empat arah mata angin, keseimbangan, dan harmoni kosmik. Motif ini melambangkan pertumbuhan dan perkembangan yang harmonis serta kebijaksanaan.",
+      "createdAt": "2024-01-15T10:15:00Z"
+    },
+    {
+      "id": "lasem",
+      "name": "Lasem",
+      "colorCategory": "winter",
+      "imageUrl": "/assets/images/lasem.jpg",
+      "model3dUrl": "/assets/models/lasem.gltf",
+      "history": "Lasem adalah motif batik dari Lasem, Rembang yang dikenal dengan warna merah yang kaya dan cerah. Batik Lasem terkenal di seluruh nusantara dengan kombinasi warna yang harmonis. Motif ini menunjukkan pengaruh budaya China dalam perkembangan batik Jawa.",
+      "origin": "Lasem, Rembang, Jawa Tengah",
+      "philosophy": "Lasem melambangkan keberanian, semangat, dan gairah dalam kehidupan. Kombinasi warna merah dan emas mencerminkan kemakmuran, kemuliaan, dan prestise. Motif ini menunjukkan kebesaran dan menggambarkan nilai-nilai budaya yang kaya dengan pengaruh Tiongkok.",
+      "createdAt": "2024-01-15T10:20:00Z"
+    },
+    {
+      "id": "buketan",
+      "name": "Buketan",
+      "colorCategory": "summer",
+      "imageUrl": "/assets/images/buketan.jpg",
+      "model3dUrl": "/assets/models/buketan.gltf",
+      "history": "Buketan adalah motif batik yang menampilkan rangkaian bunga dan tumbuhan yang indah. Motif ini mencerminkan keindahan alam dengan cara yang artistik. Buketan berasal dari pengaruh seni dekoratif Eropa yang kemudian diadaptasi menjadi gaya lokal.",
+      "origin": "Yogyakarta, Jawa Tengah",
+      "philosophy": "Buketan melambangkan keindahan, kelembutan, dan keanggunan dalam kehidupan. Bunga-bunga yang terangkai indah mencerminkan keberagaman dan kekayaan budaya. Motif ini membawa energi positif, ketenangan, dan keharuan, serta melambangkan persahabatan dan cinta.",
+      "createdAt": "2024-01-15T10:25:00Z"
+    }
+  ],
+  "personalColors": [
+    {
+      "id": "spring",
+      "name": "Spring",
+      "hexColor": "#F5D76E",
+      "description": "Warna hangat dengan saturasi tinggi. Cocok dengan batik berwarna cerah, ceria, dan bersemangat seperti Kawung dan Buketan.",
+      "recommendedBatiks": ["kawung", "buketan"]
+    },
+    {
+      "id": "summer",
+      "name": "Summer",
+      "hexColor": "#B8E6F0",
+      "description": "Warna sejuk dengan saturasi sedang. Cocok dengan batik bernuansa pastel, lembut, dan menenangkan seperti Megamendung.",
+      "recommendedBatiks": ["megamendung", "buketan"]
+    },
+    {
+      "id": "autumn",
+      "name": "Autumn",
+      "hexColor": "#E8A76F",
+      "description": "Warna hangat dengan saturasi rendah. Cocok dengan batik bernuansa tanah, alami, dan hangat seperti Dringo.",
+      "recommendedBatiks": ["dringo"]
+    },
+    {
+      "id": "winter",
+      "name": "Winter",
+      "hexColor": "#2C2C2C",
+      "description": "Warna sejuk dengan saturasi tinggi. Cocok dengan batik kontras, berani, dan elegan seperti Parang dan Lasem.",
+      "recommendedBatiks": ["parang", "lasem"]
+    }
+  ]
+}
