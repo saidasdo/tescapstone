@@ -1,52 +1,62 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const FILTERS = [
-  {
-    id: "parang",
-    name: "Parang",
-    tone: "Batik Klasik",
-    hue: "from-batik-gold to-batik-brown",
-    image: "/assets/batik-ciptoning-1024x1024.webp",
-    history: "Motif klasik yang melambangkan kekuatan, kesinambungan, dan kehormatan.",
-  },
-  {
-    id: "megamendung",
-    name: "Megamendung",
-    tone: "Pesisir",
-    hue: "from-sky-400 to-indigo-500",
-    image: "/assets/elegant-floral-botanical-print-fabric-stationery_1325579-3321.avif",
-    history: "Terinspirasi dari awan mendung, melambangkan keteduhan dan kesabaran.",
-  },
-  {
-    id: "dringo",
-    name: "Dringo",
-    tone: "Jogja",
-    hue: "from-rose-400 to-batik-red",
-    image: "/assets/Motif-Batik-Jogja.webp",
-    history: "Motif Yogyakarta yang sering dipakai untuk acara adat dan resmi.",
-  },
-  {
-    id: "kawung",
-    name: "Kawung",
-    tone: "Keraton",
-    hue: "from-amber-300 to-batik-gold",
-    history: "Motif kerajaan yang melambangkan kesucian dan pengendalian diri.",
-  },
-  {
-    id: "lasem",
-    name: "Lasem",
-    tone: "Peranakan",
-    hue: "from-orange-300 to-red-500",
-    history: "Perpaduan budaya Tionghoa dan Jawa, kuat pada warna merah khas.",
-  },
-  {
-    id: "buketan",
-    name: "Buketan",
-    tone: "Floral",
-    hue: "from-emerald-300 to-teal-500",
-    history: "Motif bunga-bungaan yang populer di pesisir dengan nuansa ceria.",
-  },
-];
+// const FILTERS = [
+//   {
+//     id: "parang",
+//     name: "Parang",
+//     tone: "Batik Klasik",
+//     hue: "from-batik-gold to-batik-brown",
+//     image: "/assets/batik-ciptoning-1024x1024.webp",
+//     history: "Motif klasik yang melambangkan kekuatan, kesinambungan, dan kehormatan.",
+//   },
+//   {
+//     id: "megamendung",
+//     name: "Megamendung",
+//     tone: "Pesisir",
+//     hue: "from-sky-400 to-indigo-500",
+//     image: "/assets/elegant-floral-botanical-print-fabric-stationery_1325579-3321.avif",
+//     history: "Terinspirasi dari awan mendung, melambangkan keteduhan dan kesabaran.",
+//   },
+//   {
+//     id: "dringo",
+//     name: "Dringo",
+//     tone: "Jogja",
+//     hue: "from-rose-400 to-batik-red",
+//     image: "/assets/Motif-Batik-Jogja.webp",
+//     history: "Motif Yogyakarta yang sering dipakai untuk acara adat dan resmi.",
+//   },
+//   {
+//     id: "kawung",
+//     name: "Kawung",
+//     tone: "Keraton",
+//     hue: "from-amber-300 to-batik-gold",
+//     history: "Motif kerajaan yang melambangkan kesucian dan pengendalian diri.",
+//   },
+//   {
+//     id: "lasem",
+//     name: "Lasem",
+//     tone: "Peranakan",
+//     hue: "from-orange-300 to-red-500",
+//     history: "Perpaduan budaya Tionghoa dan Jawa, kuat pada warna merah khas.",
+//   },
+//   {
+//     id: "buketan",
+//     name: "Buketan",
+//     tone: "Floral",
+//     hue: "from-emerald-300 to-teal-500",
+//     history: "Motif bunga-bungaan yang populer di pesisir dengan nuansa ceria.",
+//   },
+// ];
+
+//ambil dari backend
+const FALLBACK_FILTER = {
+  id: "",
+  name: "Memuat...",
+  tone: "",
+  hue: "from-neutral-700 to-neutral-900",
+  image: null,
+  history: "",
+};
 
 const GESTURE_COOLDOWN_MS = 900;
 
@@ -104,12 +114,43 @@ export default function App() {
   const [analysisStage, setAnalysisStage] = useState("idle");
   const [analysisResult, setAnalysisResult] = useState(null);
   const [analysisError, setAnalysisError] = useState("");
+  const [recommendedBatiks, setRecommendedBatiks] = useState([]);
   const [showDetail, setShowDetail] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(false);
+  const [FILTERS, setFilters] = useState([]);
+  const [filtersError, setFiltersError] = useState("");
   const centerIdRef = useRef("parang");
   const analysisTimeoutRef = useRef(null);
   const apiBase = import.meta.env.VITE_COLOR_API_URL || "http://localhost:8000";
+  const backendApiBase = import.meta.env.VITE_API_URL || "http://localhost:4000";
+  // const [showSkeleton, setShowSkeleton] = useState(false);
+  // const centerIdRef = useRef("parang");
+  // const analysisTimeoutRef = useRef(null);
+  // const apiBase = import.meta.env.VITE_COLOR_API_URL || "http://localhost:8000";
+
+  //fetch batik catalog from backend
+    useEffect(() => {
+    const fetchBatikCatalog = async () => {
+      try {
+        const response = await fetch(`${backendApiBase}/api/batik`);
+        if (!response.ok) throw new Error("Gagal memuat katalog batik dari backend.");
+        const data = await response.json();
+        const mapped = data.map((item) => ({
+          ...item,
+          image: item.imageUrl ? `${backendApiBase}${item.imageUrl}` : null,
+        }));
+        setFilters(mapped);
+        // const data = await response.json();
+        // const mapped = data.map((item) => ({ ...item, image: item.imageUrl }));
+        // setFilters(mapped);
+      } catch (error) {
+        setFiltersError(error.message || "Gagal memuat katalog batik dari backend.");
+      }
+    };
+
+    fetchBatikCatalog();
+  }, []);
 
   useEffect(() => {
     const startCamera = async () => {
@@ -157,19 +198,20 @@ export default function App() {
     };
   }, [isIdle]);
 
+  //add FILTERS to useMemo to avoid unnecessary recalculations
   const activeIndex = useMemo(
     () => FILTERS.findIndex((item) => item.id === activeId),
-    [activeId]
+    [activeId, FILTERS]
   );
 
   const activeFilter = useMemo(
-    () => FILTERS.find((item) => item.id === activeId) || FILTERS[0],
-    [activeId]
+    () => FILTERS.find((item) => item.id === activeId) || FILTERS[0] || FALLBACK_FILTER,
+    [activeId, FILTERS]
   );
 
   const centerFilter = useMemo(
-    () => FILTERS.find((item) => item.id === centerId) || FILTERS[0],
-    [centerId]
+    () => FILTERS.find((item) => item.id === centerId) || FILTERS[0] || FALLBACK_FILTER,
+    [centerId, FILTERS]
   );
 
   const scrollToFilter = (id, behavior = "smooth") => {
@@ -244,6 +286,21 @@ export default function App() {
     return blob;
   };
 
+  // panggil endpoint rekomendasi batik berdasarkan hasil analisis Personal Color
+  const fetchRecommendations = async (season) => {
+    if (!season) return;
+    try {
+      const response = await fetch(
+        `${backendApiBase}/api/batik/recommend?season=${encodeURIComponent(season)}`
+      );
+      if (!response.ok) return;
+      const data = await response.json();
+      setRecommendedBatiks(data.recommendations || []);
+    } catch (error) {
+      // Rekomendasi bersifat pelengkap — kalau gagal, jangan ganggu hasil analisis utama
+    }
+  };
+
   const startColorAnalysis = async () => {
     if (analysisStage === "analyzing") return;
     setAnalysisStage("analyzing");
@@ -280,6 +337,8 @@ export default function App() {
       const data = await response.json();
       setAnalysisResult(data);
       setAnalysisStage("result");
+      // panggil fungsi rekomendasi setelah analisis berhasil
+      fetchRecommendations(data.season);
     } catch (error) {
       setAnalysisError(error?.message || "Analisis gagal.");
       setAnalysisStage("error");
@@ -704,6 +763,15 @@ export default function App() {
                   isIdle ? "pointer-events-none opacity-0" : "opacity-100"
                 }`}
               >
+                {/* kalau backend mati atau CORS bermasalah, yang dilihat adalah pesan error di layar, bukan carousel kosong yang membingungkan */}
+                {/* {filtersError && (
+                  <p className="w-full text-center text-xs text-red-300">{filtersError}</p>
+                )}
+                {!filtersError && FILTERS.length === 0 && (
+                  <p className="w-full text-center text-xs text-white/60">
+                    Memuat katalog batik...
+                  </p>
+                )} */}
                 {FILTERS.map((item) => {
                   const isActive = item.id === activeId;
                   return (
@@ -735,6 +803,12 @@ export default function App() {
                           <span className="text-base font-semibold">{item.name[0]}</span>
                         )}
                         <span className="absolute inset-0 rounded-full bg-gradient-to-t from-black/35 via-transparent to-white/10" />
+                        {/* menampilkan badge ✓ di carousel untuk motif yang direkomendasikan */}
+                        {recommendedBatiks.some((rec) => rec.id === item.id) && (
+                          <span className="absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-emerald-400 text-[0.6rem] font-bold text-neutral-900 shadow ring-2 ring-neutral-950">
+                            ✓
+                          </span>
+                        )}
                       </span>
                     </button>
                   );
@@ -782,6 +856,17 @@ export default function App() {
               <div className="mt-1 text-[0.65rem] text-neutral-400">
                 Skin {analysisResult?.hex?.skin || "-"} • Lip {analysisResult?.hex?.lip || "-"}
               </div>
+              {/* Menampilkan daftar nama motif rekomendasi di modal hasil analisis */}
+              {recommendedBatiks.length > 0 && (
+                <div className="mt-4 border-t border-neutral-200 pt-4 text-left">
+                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-neutral-500">
+                    Motif Rekomendasi
+                  </p>
+                  <p className="mt-1 text-sm text-neutral-700">
+                    {recommendedBatiks.map((item) => item.name).join(", ")}
+                  </p>
+                </div>
+              )}
               <button
                 onClick={closeAnalysis}
                 className="mt-4 rounded-full border border-neutral-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-600"
