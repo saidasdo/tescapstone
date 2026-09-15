@@ -100,7 +100,7 @@ const batikData = [
 ];
 
 async function main() {
-  console.log("🌱 Mulai seeding data batik...");
+  console.log("Mulai seeding data batik...");
 
   for (const batik of batikData) {
     const result = await prisma.batik.upsert({
@@ -111,12 +111,12 @@ async function main() {
     console.log(`   ✔ ${result.name} (${result.id})`);
   }
 
-  console.log("✅ Seeding selesai.");
+  console.log("Seeding selesai.");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seeding gagal:", e);
+    console.error("Seeding gagal:", e);
     process.exit(1);
   })
   .finally(async () => {
