@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+  // output   = "../src/generated/prisma"
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------------
+// Tabel 1: Katalog motif batik
+//----------------------------------
+
+model Batik {
+  id            String   @id            // slug unik, contoh: "parang", "kawung"
+  name          String                  // nama motif, contoh: "Parang"
+  tone          String?                 // label singkat dari UI lama, contoh: "Batik Klasik"
+  hue           String?                 // class gradient Tailwind dari UI lama
+  colorCategory String                  // kategori warna personal: spring | summer | autumn | winter
+  history       String                  // teks sejarah motif
+  philosophy    String?                 // makna/filosofi motif (opsional)
+  origin        String?                 // asal daerah (opsional)
+  imageUrl      String                  // path gambar 2D — WAJIB ADA
+  model3dUrl    String?                 // path file .glb — OPSIONAL, boleh kosong
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relasi balik: satu motif bisa muncul di banyak log percobaan pengunjung
+  tryOnSessions TryOnSession[]
+}
+
+// -------------------------------------------
+// Tabel 2: Log percobaan pengunjung 
+// -----------------------------------------------
+
+model TryOnSession {
+  id                Int      @id @default(autoincrement())
+
+  // Hasil dari Personal Color Analysis (FastAPI) — opsional,
+  // karena pengunjung mungkin cuma coba-coba motif tanpa analisis warna
+  detectedSeason    String?             // contoh: "Winter"
+  confidence        Float?              // confidence dari hasil analisis, contoh: 0.82
+
+  // Motif yang benar-benar dicoba/dipilih pengunjung — opsional juga,
+  // karena bisa saja pengunjung membatalkan sebelum memilih
+  selectedBatikId   String?
+  selectedBatik     Batik?   @relation(fields: [selectedBatikId], references: [id], onDelete: SetNull)
+
+  createdAt         DateTime @default(now())
+}
